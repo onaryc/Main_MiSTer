@@ -56,10 +56,46 @@ typedef struct {
 	char custom_aspect_ratio[2][16];
 } cfg_t;
 
+typedef enum
+{
+	UINT8 = 0, INT8, UINT16, INT16, UINT32, INT32, FLOAT, STRING
+} ini_vartypes_t;
+
+typedef enum
+{
+	VIDEO_DIGITAL_IDX = 0, VIDEO_ANALOG_IDX, UI_IDX, AUDIO_IDX, INPUT_IDX, 
+	STORAGE_IDX, NETWORK_IDX, UPDATE_IDX, MISC_IDX
+} ini_cfgcat_idx_t;
+
+typedef struct 
+{
+	const char* name;
+	ini_cfgcat_idx_t id;
+} ini_cfgcat_t;
+
+typedef struct
+{
+	const char* name;
+	void* var;
+	ini_vartypes_t type;
+	int min;
+	int max;
+	unsigned int category = 0;
+	int dismenu = 0;
+} ini_var_t;
+
 extern cfg_t cfg;
+
+extern const unsigned int nvars;
+extern const ini_var_t ini_vars[];
+
+extern const unsigned int ncfgcats;
+extern const ini_cfgcat_t ini_cfgcats[];
+
 
 //// functions ////
 void cfg_parse();
 const char* cfg_get_name(uint8_t alt);
+char * var_name_format(char * s);
 
 #endif // __CFG_H__

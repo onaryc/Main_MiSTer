@@ -15,10 +15,12 @@ void MenuHide();
 
 uint32_t getStatus(char *opt, uint32_t status);
 void substrcpy(char *d, char *s, char idx);
+void strreplace(char * d, char * s, int idx);
 
 void open_joystick_setup();
 int menu_lightgun_cb(uint16_t type, uint16_t code, int value);
 
 int menu_allow_cfg_switch();
 
+void iniSettingsMenu();
 #endif

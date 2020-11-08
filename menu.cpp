@@ -76,6 +76,12 @@ enum MENU
 	MENU_RECONF2,
 	MENU_SETTINGS1,
 	MENU_SETTINGS2,
+	MENU_SETTINGS_COMMON1,
+	MENU_SETTINGS_COMMON2,
+	MENU_SETTINGS_NETWORK1,
+	MENU_SETTINGS_NETWORK2,
+	MENU_SETTINGS_UPDATE1,
+	MENU_SETTINGS_UPDATE2,
 	MENU_ROMFILE_SELECTED,
 	MENU_SETTINGS_VIDEO1,
 	MENU_SETTINGS_VIDEO2,
@@ -386,6 +392,15 @@ void substrcpy(char *d, char *s, char idx)
 	}
 
 	*d = 0;
+}
+
+void strreplace(char * d, char * s, int idx)
+{
+	// test that the source string will not be placed outside the destination string
+	if ((strlen(s) + idx) <= strlen(d))
+	{
+		memcpy (d+idx, s, strlen(s));
+	}
 }
 
 #define STD_EXIT       "            exit"
@@ -1246,14 +1261,13 @@ void HandleUI(void)
     // base to a minimum and shrink its size. The UI is called with the basic state data and it handles everything internally,
     // only updating values in this function as necessary.
     //
-    if (user_io_core_type() == CORE_TYPE_SHARPMZ)
-        sharpmz_ui(MENU_NONE1, MENU_NONE2, MENU_8BIT_SYSTEM1, MENU_FILE_SELECT1,
-			       &parentstate, &menustate, &menusub, &menusub_last,
-			       &menumask, Selected_F[0], &helptext, helptext_custom,
-			       &fs_ExtLen, &fs_Options, &fs_MenuSelect, &fs_MenuCancel,
-			       fs_pFileExt,
-			       menu, select, up, down,
-			       left, right, plus, minus);
+    if (user_io_core_type() == CORE_TYPE_SHARPMZ) sharpmz_ui(MENU_NONE1, MENU_NONE2, MENU_8BIT_SYSTEM1, MENU_FILE_SELECT1,
+	   &parentstate, &menustate, &menusub, &menusub_last,
+	   &menumask, Selected_F[0], &helptext, helptext_custom,
+	   &fs_ExtLen, &fs_Options, &fs_MenuSelect, &fs_MenuCancel,
+	   fs_pFileExt,
+	   menu, select, up, down,
+	   left, right, plus, minus);
 
 	switch (menustate)
 	{
@@ -5211,17 +5225,17 @@ void HandleUI(void)
 		OsdWrite(m++, " Remap keyboard            \x16", menusub == 1);
 		OsdWrite(m++, " Define joystick buttons   \x16", menusub == 2);
 		OsdWrite(m++, " Scripts                   \x16", menusub == 3);
+		OsdWrite(m++, " Settings                  \x16", menusub == 4);
 		OsdWrite(m++, "");
 		cr = m;
-		OsdWrite(m++, " Reboot (hold \x16 cold reboot)", menusub == 4);
+		OsdWrite(m++, " Reboot (hold \x16 cold reboot)", menusub == 5);
 		sysinfo_timer = 0;
 
 		reboot_req = 0;
 
 		while(m < OsdGetSize()-1) OsdWrite(m++, "");
-		OsdWrite(15, STD_EXIT, menusub == 5);
+		OsdWrite(15, STD_EXIT, menusub == 6);
 		menustate = MENU_SYSTEM2;
-
 	case MENU_SYSTEM2:
 		if (menu)
 		{
@@ -5270,8 +5284,12 @@ void HandleUI(void)
 					}
 				}
 				break;
-
 			case 4:
+				menustate = MENU_SETTINGS1;
+				menusub_last = menusub;
+				menusub = 0;
+				break;
+			case 5:
 				{
 					reboot_req = 1;
 
@@ -5284,9 +5302,10 @@ void HandleUI(void)
 				}
 				break;
 
-			case 5:
+			case 6:
 				menustate = MENU_NONE1;
 				break;
+			
 			}
 		}
 		else if (left)
@@ -5296,7 +5315,316 @@ void HandleUI(void)
 
 		if (!hold_cnt && reboot_req) fpga_load_rbf("menu.rbf");
 		break;
+		
+	case MENU_SETTINGS1:
+		// initialize the OSD
+		OsdSetSize(16);
+		OsdSetTitle("Settings");
+		
+		//helptext = "test helptext";
+		menumask = 0;
 
+		menustate = MENU_SETTINGS2;
+		parentstate = MENU_SETTINGS1;
+		
+		// generate the main configuration category entries
+		for (m = 0;m < ncfgcats; m++) {
+			sprintf(s, "                           \x16");
+			strreplace(s, (char *)ini_cfgcats[m].name, 1);
+			OsdWrite(m, s, menusub == m);
+			menumask = (menumask << 1) | 1;
+		}
+		
+		//// add a custom menu for network
+		//OsdWrite(m, " Network                   \x16", menusub == m);
+		//menumask = (menumask << 1) | 1;
+		//m++;
+		
+		//// add a custom menu for update
+		//OsdWrite(m, " Update                    \x16", menusub == m);
+		//menumask = (menumask << 1) | 1;
+		//m++;
+		
+		// reset the rest of the screen
+		while(m < OsdGetSize()) OsdWrite(m++, "");
+
+		//break;
+	case MENU_SETTINGS2:
+		if (menu || back) // go back with esc
+		{
+			menusub = menusub_last;
+			menustate = MENU_SYSTEM1;
+		}
+		else if (select)
+		{
+			menustate = MENU_SETTINGS_COMMON1;
+			menusub_last = menusub;
+			menusub = 0;
+				
+			////if (menusub < ncfgcats) // settings menu
+			////{				
+				////menustate = MENU_SETTINGS_COMMON1;
+				////menusub_last = menusub;
+				////menusub = 0;	
+			////}
+			////else if (menusub == ncfgcats) // network menu
+			//if (menusub == NETWORK_IDX) // network menu
+			//{
+				//menustate = MENU_SETTINGS_NETWORK1;
+				//menusub_last = menusub;
+				//menusub = 0;
+			//}
+			////else if (menusub == (ncfgcats + 1)) // update menu
+			//else if (menusub == UPDATE_IDX) // update menu
+			//{
+				//menustate = MENU_SETTINGS_UPDATE1;
+				//menusub_last = menusub;
+				//menusub = 0;
+			//} else {
+				//menustate = MENU_SETTINGS_COMMON1;
+				//menusub_last = menusub;
+				//menusub = 0;
+			//}
+		}
+		break;
+	case MENU_SETTINGS_COMMON1:
+		// initialize the OSD
+		OsdSetSize(16);
+		OsdSetTitle(ini_cfgcats[menusub_last].name);
+		
+		//helptext = "test helptext";
+		
+		menustate = MENU_SETTINGS_COMMON2;
+		parentstate = MENU_SETTINGS_COMMON1;
+		
+		menumask = 0;
+
+		m = 0;
+		
+		switch (menusub_last) {
+			case INPUT_IDX:
+				OsdWrite(m, " Remap keyboard            \x16", menusub == m);
+				menumask = (menumask << 1) | 1;
+				m++;
+				OsdWrite(m, " Define joystick buttons   \x16", menusub == m);
+				menumask = (menumask << 1) | 1;
+				m++;
+				break;
+			case STORAGE_IDX:
+				{
+					uint64_t avail = 0;
+					struct statvfs buf;
+					memset(&buf, 0, sizeof(buf));
+					if (!statvfs(getRootDir(), &buf)) avail = buf.f_bsize * buf.f_bavail;
+					if(avail < (10ull*1024*1024*1024)) sprintf(s, "   Available space: %llumb", avail / (1024 * 1024));
+					else sprintf(s, "   Available space: %llugb", avail / (1024 * 1024 * 1024));
+					OsdWrite(m+2, s, 0, 0);
+				}
+
+				OsdWrite(m++, "");
+				if (getStorage(0))
+				{
+					OsdWrite(m++, "        Storage: USB");
+					m++;
+					OsdWrite(m++, "      Switch to SD card", menusub == 0);
+				}
+				else
+				{
+					if (getStorage(1))
+					{
+						OsdWrite(m++, " No USB found, using SD card");
+						m++;
+						OsdWrite(m++, "      Switch to SD card", menusub == 0);
+					}
+					else
+					{
+						OsdWrite(m++, "      Storage: SD card");
+						m++;
+						OsdWrite(m++, "        Switch to USB", menusub == 0, !isUSBMounted());
+					}
+				}
+				break;
+			case NETWORK_IDX:
+				OsdWrite(m, " Wi-Fi Setup               \x16 ", menusub == 0);
+				menumask = (menumask << 1) | 1;
+				m++;
+				OsdWrite(m, " Set Timezone              \x16 ", menusub == 1);
+				menumask = (menumask << 1) | 1;
+				m++;
+				OsdWrite(m, " Rclone Config             \x16 ", menusub == 2);
+				menumask = (menumask << 1) | 1;
+				m++;
+				OsdWrite(m, " Google Drive Config       \x16 ", menusub == 3);
+				menumask = (menumask << 1) | 1;
+				m++;
+				OsdWrite(m, " Network Drive Config      \x16 ", menusub == 4);
+				menumask = (menumask << 1) | 1;
+				m++;
+				OsdWrite(m, " Enable FTP                \x16 ", menusub == 5);
+				menumask = (menumask << 1) | 1;
+				m++;
+				OsdWrite(m, " Disable FTP               \x16 ", menusub == 6);
+				menumask = (menumask << 1) | 1;
+				m++;
+				OsdWrite(m, " Enable Network Share      \x16 ", menusub == 7);
+				menumask = (menumask << 1) | 1;
+				m++;
+				OsdWrite(m, " Disable Network Share     \x16 ", menusub == 7);
+				menumask = (menumask << 1) | 1;
+				m++;
+
+				//while (m < 13) OsdWrite(m++); // PORKCHOP EXPRESS (clean up printSysInfo() instead?
+				//{
+					//char str[40];
+					//int j = 0;
+					////int n = 0;
+					//char* net;
+					//net = getNet(1);
+					//if (net)
+					//{
+						//sprintf(str, "\x1c %s", net);
+						//infowrite(m++, str);
+						//j++;
+					//}
+					//net = getNet(2);
+					//if (net)
+					//{
+						//sprintf(str, "\x1d %s", net);
+						//infowrite(m++, str);
+						//j++;
+					//}
+					//if (!j) infowrite(m++, "No network");
+					//if (j < 2) infowrite(m++, "");}
+				////OsdWrite(13, "   Wi-Fi IP: XXX.XXX.XXX.XXX   ");
+				////OsdWrite(14, "   Wired IP: XXX.XXX.XXX.XXX   ");
+				break;
+			case UPDATE_IDX:
+				OsdWrite(m++);
+				OsdWrite(m++, " Update All                \x16 ", menusub == 0);
+				OsdWrite(m++, " Update Arcade Cores       \x16 ", menusub == 1);
+				OsdWrite(m++, " Update Computer Cores     \x16 ", menusub == 2);
+				OsdWrite(m++, " Update Console Cores      \x16 ", menusub == 3);
+				OsdWrite(m++, " Update Filters            \x16 ", menusub == 4);
+				OsdWrite(m++, " Update Service            \x16 ", menusub == 5);
+				break;
+		}
+		
+		// generate frome the ini structures
+		for (unsigned int i = 0; i < nvars; i++) {
+			if ((ini_vars[i].category == menusub_last) && (ini_vars[i].dismenu)) {
+				//const char * name = ini_vars[i].name;
+				char * name = (char *)malloc(64);
+				strcpy(name, ini_vars[i].name);
+				name = var_name_format(name);
+				switch (ini_vars[i].type) {
+					case UINT8:
+						sprintf(s, " %s: %u", name, *(uint8_t*)ini_vars[i].var);
+						break;
+					case INT8:
+						sprintf(s, " %s: %i", name, *(int8_t*)ini_vars[i].var);
+						break;
+					case UINT16:
+						sprintf(s, " %s: %u", name, *(uint16_t*)ini_vars[i].var);
+						break;
+					case INT16:
+						sprintf(s, " %s: %i", name, *(int16_t*)ini_vars[i].var);
+						break;
+					case UINT32:
+						sprintf(s, " %s: %u", name, *(uint32_t*)ini_vars[i].var);
+						break;
+					case INT32:
+						sprintf(s, " %s: %i", name, *(int32_t*)ini_vars[i].var);
+						break;
+					case FLOAT:
+						sprintf(s, " %s: %f", name, *(float*)ini_vars[i].var);
+						break;
+					case STRING:
+						sprintf(s, " %s: %s", name, (char *)ini_vars[i].var);
+						break;
+				}
+				OsdWrite(m, s, menusub == m);
+				menumask = (menumask << 1) | 1;
+				m++;
+			}
+		}
+		
+		// reset the rest of the screen
+		while(m < OsdGetSize()) OsdWrite(m++, "");
+		
+		//break;
+	case MENU_SETTINGS_COMMON2:
+		if (menu || back) // go back with esc
+		{
+			//menusub = menusub_last;
+			//menustate = MENU_SETTINGS_COMMON1;
+			menusub = 0;
+			menustate = MENU_SYSTEM1;
+		}
+		else if (select)
+		{
+
+		}
+		break;
+	//case MENU_SETTINGS_NETWORK1:
+		//// initialize the OSD
+		//OsdSetSize(16);
+		//OsdSetTitle("Network");
+		
+		////helptext = "test helptext";
+
+		//menustate = MENU_SETTINGS_NETWORK2;
+		//parentstate = MENU_SETTINGS_NETWORK1;
+		
+		//menumask = 0;
+		
+		//m = 0;
+		
+		//// reset the rest of the screen
+		//while(m < OsdGetSize()) OsdWrite(m++, "");
+		////break;
+	//case MENU_SETTINGS_NETWORK2:
+		//if (menu || back) // go back with esc
+		//{
+			////menusub = menusub_last;
+			////menustate = MENU_SETTINGS_NETWORK1;
+			//menusub = 0;
+			//menustate = MENU_SYSTEM1;
+		//}
+		//else if (select)
+		//{
+
+		//}
+		//break;
+	//case MENU_SETTINGS_UPDATE1:
+			//// initialize the OSD
+		//OsdSetSize(16);
+		//OsdClear();
+		//OsdSetTitle("Update");
+		
+		////helptext = "test helptext";
+		//menustate = MENU_SETTINGS_UPDATE2;
+		//parentstate = MENU_SETTINGS_UPDATE1;
+		
+		//menumask = 0;
+		
+		//m = 0;
+		
+		//// reset the rest of the screen
+		//while(m < OsdGetSize()) OsdWrite(m++, "");
+		////break;
+	//case MENU_SETTINGS_UPDATE2:
+		//if (menu || back) // go back with esc
+		//{
+			////menusub = menusub_last;
+			////menustate = MENU_SETTINGS_UPDATE1;
+			//menusub = 0;
+			//menustate = MENU_SYSTEM1;
+		//}
+		//else if (select)
+		//{
+
+		//}
+		//break;
 	case MENU_JOYSYSMAP:
 		strcpy(joy_bnames[SYS_BTN_A - DPAD_NAMES], "A");
 		strcpy(joy_bnames[SYS_BTN_B - DPAD_NAMES], "B");
@@ -6050,3 +6378,51 @@ int menu_allow_cfg_switch()
 
 	return 0;
 }
+
+//void iniSettingsMenu ()
+//{
+	////static char s[256];
+	
+	////OsdSetSize(16);
+	////menumask = 255;
+	//parentstate = menustate;
+	//menustate = MENU_SETTINGS2;
+
+	//OsdSetTitle("Settings", 0);
+
+	////unsigned int iniVarNb = ini_cfg.nvars;
+	//////OsdSetSize(iniVarNb);
+	////for (unsigned int i = 0; i < iniVarNb; i++) {
+		//////char * name = ini_cfg.vars[i].name;
+		////switch (ini_cfg.vars[i].type) {
+		////case UINT8:
+			////sprintf(s, " %s: %i", ini_cfg.vars[i].name, *(uint8_t*)ini_cfg.vars[i].var);
+			////break;
+		////case INT8:
+			////sprintf(s, " %s: %i", ini_cfg.vars[i].name, *(int8_t*)ini_cfg.vars[i].var);
+			////break;
+		////case UINT16:
+			////sprintf(s, " %s: %i", ini_cfg.vars[i].name, *(uint16_t*)ini_cfg.vars[i].var);
+			////break;
+		////case INT16:
+			////sprintf(s, " %s: %i", ini_cfg.vars[i].name, *(int16_t*)ini_cfg.vars[i].var);
+			////break;
+		////case UINT32:
+			////sprintf(s, " %s: %i", ini_cfg.vars[i].name, *(uint32_t*)ini_cfg.vars[i].var);
+			////break;
+		////case INT32:
+			////sprintf(s, " %s: %i", ini_cfg.vars[i].name, *(int32_t*)ini_cfg.vars[i].var);
+			////break;
+		////case FLOAT:
+			////sprintf(s, " %s: %f", ini_cfg.vars[i].name, *(float*)ini_cfg.vars[i].var);
+			////break;
+		////case STRING:
+			////sprintf(s, " %s:         %s", ini_cfg.vars[i].name, (char *)ini_cfg.vars[i].var);
+			////break;
+		////case CUSTOM_HANDLER:
+			////break;
+		////}
+		//////sprintf(s, " %s:         %s", ini_cfg.vars[i].name, ini_cfg.vars[i].var);
+		////OsdWrite(i, s, menusub == i, 0);
+	////}
+//}
