@@ -34,54 +34,77 @@ const ini_cfgcat_t ini_cfgcats[] =
 
 const unsigned int ncfgcats = (unsigned int)(sizeof(ini_cfgcats) / sizeof(ini_cfgcat_t));
 
+const char* config_hdmi_audio_msg[] = { "48kHz/16-bit", "96kHz/16-bit" };
+const char* config_reset_combo_msg[] = { "LCTL+LALT+RALT","LCTL+LGUI+RGUI","LCTL+LALT+DEL" };
+const char* config_on_off_msg[] = { "Off", "On" };
+const char* config_autoboot_core_msg[] = { "Menu", "Last" };
+//const char* config_autoboot_timeout_msg[] = { "10", "15", "20", "25", "30" };
+const char* config_display_vsync_msg[] = { "Compatible", "Balanced", "Low Latency" };
+const char* config_hdmi_range_msg[] = { "Full(0-255)", "Limited(16-255)", "Limited(16-235)" };
+const char* config_vertical_scale_msg[] = { "Fit", "Integer", "1/2 Step", "1/4 Step" };
+const char* config_framebuffer_scale_msg[] = { "Auto", "Full", "Half", "Quarter" };
+//const char* config_separate_ntsc_pal_msg[] = { "      Off","       On" };
+const char* config_menu_mode_msg[] = { "NTSC", "PAL" };
+const char* config_analog_display_mode_msg[] = {"Native(240p)", "Scaled(HDMI)" };
+const char* config_scandoubler_msg[] = { "Off","On (240p->480p)" };
+const char* config_color_mode_msg[] = { "RGB", "YPbPr" };
+const char* config_sync_mode_msg[] = { "Off", "On Hsync" };
+//const char* config_sync_mode_msg[] = { "Separate (RGBHV)", "Composite (RGBS)", "Green (RGsB/YPbPr)" };
+//const char* config_video_mode_msg[] = { "1280x720@60", "1024x768@60", "720x480@60", "720x576@50", "1280x1024@60", "800x600@60", "640x480@60", "1280x720@50",
+	//"1920x1080@60", "1920x1080@50", "1366x768@60", "1024x600@60", "1920x1440@60", "2048x1536@60" };
+const char* config_video_mode_msg[] = { "1280x720@60", "1024x768@60", "720x480@60", "720x576@50", "1280x1024@60", "800x600@60", "640x480@60", "1280x720@50",
+	"1080p60", "1920x1080@50", "1366x768@60", "1024x600@60", "1920x1440@60", "2048x1536@60" };
+const char* config_osd_rotate_msg[] = { "No", "Right (+90)", "Left (-90)" };
+const char* config_sniper_mode_msg[] = { "Slow", "Swapped" };
+
 const ini_var_t ini_vars[] =
 {
-	{ "YPBPR", (void*)(&(cfg.ypbpr)), UINT8, 0, 1, 1, 1},
-	{ "COMPOSITE_SYNC", (void*)(&(cfg.csync)), UINT8, 0, 1, 1, 1},
-	{ "FORCED_SCANDOUBLER", (void*)(&(cfg.forced_scandoubler)), UINT8, 0, 1, 1, 1},
-	{ "VGA_SCALER", (void*)(&(cfg.vga_scaler)), UINT8, 0, 1, 1, 1},
-	{ "VGA_SOG", (void*)(&(cfg.vga_sog)), UINT8, 0, 1, 1, 1},
-	{ "KEYRAH_MODE", (void*)(&(cfg.keyrah_mode)), UINT32, 0, (int)0xFFFFFFFF, 4, 0},
-	{ "RESET_COMBO", (void*)(&(cfg.reset_combo)), UINT8, 0, 3, 5, 1},
-	{ "KEY_MENU_AS_RGUI", (void*)(&(cfg.key_menu_as_rgui)), UINT8, 0, 1, 5, 1},
-	{ "VIDEO_MODE", (void*)(cfg.video_conf), STRING, 0, sizeof(cfg.video_conf)-1 , 0, 1},
-	{ "VIDEO_MODE_PAL", (void*)(cfg.video_conf_pal), STRING, 0, sizeof(cfg.video_conf_pal) - 1 , 0, 1},
-	{ "VIDEO_MODE_NTSC", (void*)(cfg.video_conf_ntsc), STRING, 0, sizeof(cfg.video_conf_ntsc) - 1, 0, 1},
-	{ "VIDEO_INFO", (void*)(&(cfg.video_info)), UINT8, 0, 10, 0, 1},
-	{ "VSYNC_ADJUST", (void*)(&(cfg.vsync_adjust)), UINT8, 0, 2, 0, 1},
-	{ "HDMI_AUDIO_96K", (void*)(&(cfg.hdmi_audio_96k)), UINT8, 0, 1, 3, 1},
-	{ "DVI_MODE", (void*)(&(cfg.dvi)), UINT8, 0, 1, 0, 1},
-	{ "HDMI_LIMITED", (void*)(&(cfg.hdmi_limited)), UINT8, 0, 2, 0, 1},
-	{ "KBD_NOMOUSE", (void*)(&(cfg.kbd_nomouse)), UINT8, 0, 1, 4, 1},
-	{ "MOUSE_THROTTLE", (void*)(&(cfg.mouse_throttle)), UINT8, 1, 100, 4, 0},
-	{ "BOOTSCREEN", (void*)(&(cfg.bootscreen)), UINT8, 0, 1, 5, 1},
-	{ "VSCALE_MODE", (void*)(&(cfg.vscale_mode)), UINT8, 0, 3, 0, 1},
-	{ "VSCALE_BORDER", (void*)(&(cfg.vscale_border)), UINT16, 0, 399, 0, 1},
-	{ "RBF_HIDE_DATECODE", (void*)(&(cfg.rbf_hide_datecode)), UINT8, 0, 1, 2, 1},
-	{ "MENU_PAL", (void*)(&(cfg.menu_pal)), UINT8, 0, 1, 2, 1},
-	{ "BOOTCORE", (void*)(&(cfg.bootcore)), STRING, 0, sizeof(cfg.bootcore) - 1, 5, 0},
-	{ "BOOTCORE_TIMEOUT", (void*)(&(cfg.bootcore_timeout)), INT16, 10, 30, 5, 0},
-	{ "FONT", (void*)(&(cfg.font)), STRING, 0, sizeof(cfg.font) - 1, 5, 1},
-	{ "FB_SIZE", (void*)(&(cfg.fb_size)), UINT8, 0, 4, 0, 0},
-	{ "FB_TERMINAL", (void*)(&(cfg.fb_terminal)), UINT8, 0, 1, 0, 0},
-	{ "OSD_TIMEOUT", (void*)(&(cfg.osd_timeout)), INT16, 5, 3600, 2, 1},
-	{ "DIRECT_VIDEO", (void*)(&(cfg.direct_video)), UINT8, 0, 1, 1, 1},
-	{ "OSD_ROTATE", (void*)(&(cfg.osd_rotate)), UINT8, 0, 2, 2, 1},
-	{ "GAMEPAD_DEFAULTS", (void*)(&(cfg.gamepad_defaults)), UINT8, 0, 1, 4, 1 },
-	{ "RECENTS", (void*)(&(cfg.recents)), UINT8, 0, 1, 5, 1},
-	{ "CONTROLLER_INFO", (void*)(&(cfg.controller_info)), UINT8, 0, 10, 4, 0 },
-	{ "REFRESH_MIN", (void*)(&(cfg.refresh_min)), UINT8, 0, 150, 0, 0 },
-	{ "REFRESH_MAX", (void*)(&(cfg.refresh_max)), UINT8, 0, 150, 0, 0 },
-	{ "JAMMA_VID", (void*)(&(cfg.jamma_vid)), UINT16, 0, 0xFFFF, 4, 0 },
-	{ "JAMMA_PID", (void*)(&(cfg.jamma_pid)), UINT16, 0, 0xFFFF, 4, 0 },
-	{ "SNIPER_MODE", (void*)(&(cfg.sniper_mode)), UINT8, 0, 1, 4, 1 },
-	{ "BROWSE_EXPAND", (void*)(&(cfg.browse_expand)), UINT8, 0, 1, 2, 0 },
-	{ "LOGO", (void*)(&(cfg.logo)), UINT8, 0, 1, 2, 0 },
-	{ "SHARED_FOLDER", (void*)(&(cfg.shared_folder)), STRING, 0, sizeof(cfg.shared_folder) - 1, 5, 0 },
-	{ "NO_MERGE_VID", (void*)(&(cfg.no_merge_vid)), UINT16, 0, 0xFFFF, 4, 0 },
-	{ "NO_MERGE_PID", (void*)(&(cfg.no_merge_pid)), UINT16, 0, 0xFFFF, 4, 0 },
-	{ "CUSTOM_ASPECT_RATIO_1", (void*)(&(cfg.custom_aspect_ratio[0])), STRING, 0, sizeof(cfg.custom_aspect_ratio[0]) - 1, 0, 0 },
-	{ "CUSTOM_ASPECT_RATIO_2", (void*)(&(cfg.custom_aspect_ratio[1])), STRING, 0, sizeof(cfg.custom_aspect_ratio[1]) - 1, 0, 0 },
+	{ "YPBPR", (void*)(&(cfg.ypbpr)), UINT8, 0, 1, 1, 1, config_color_mode_msg, "Color Mode" },
+	{ "COMPOSITE_SYNC", (void*)(&(cfg.csync)), UINT8, 0, 1, 1, 1, config_sync_mode_msg, "Sync" },
+	{ "FORCED_SCANDOUBLER", (void*)(&(cfg.forced_scandoubler)), UINT8, 0, 1, 1, 1, config_scandoubler_msg, "Scandoubler" },
+	{ "VGA_SCALER", (void*)(&(cfg.vga_scaler)), UINT8, 0, 1, 1, 1, config_analog_display_mode_msg, "Display Mode" },
+	{ "VGA_SOG", (void*)(&(cfg.vga_sog)), UINT8, 0, 1, 1, 1, {}, "" },
+	{ "KEYRAH_MODE", (void*)(&(cfg.keyrah_mode)), UINT32, 0, (int)0xFFFFFFFF, 4, 0, {}, ""},
+	{ "RESET_COMBO", (void*)(&(cfg.reset_combo)), UINT8, 0, 3, 8, 1, config_reset_combo_msg, "" },
+	{ "KEY_MENU_AS_RGUI", (void*)(&(cfg.key_menu_as_rgui)), UINT8, 0, 1, 4, 1, config_on_off_msg, "Key Menu As RGUI (Minimig)" },
+	{ "VIDEO_MODE", (void*)(cfg.video_conf), STRING, 0, sizeof(cfg.video_conf)-1 , 0, 1, config_video_mode_msg, "Display Mode" },
+	{ "VIDEO_MODE_PAL", (void*)(cfg.video_conf_pal), STRING, 0, sizeof(cfg.video_conf_pal) - 1 , 0, 1, config_video_mode_msg, "NTSC Mode" },
+	{ "VIDEO_MODE_NTSC", (void*)(cfg.video_conf_ntsc), STRING, 0, sizeof(cfg.video_conf_ntsc) - 1, 0, 1, config_video_mode_msg, "PAL Mode" },
+	{ "VIDEO_INFO", (void*)(&(cfg.video_info)), UINT8, 0, 10, 0, 1, {}, "" },
+	{ "VSYNC_ADJUST", (void*)(&(cfg.vsync_adjust)), UINT8, 0, 2, 0, 1, config_display_vsync_msg, "Vertical Sync" },
+	{ "HDMI_AUDIO_96K", (void*)(&(cfg.hdmi_audio_96k)), UINT8, 0, 1, 3, 1, config_hdmi_audio_msg, "Hdmi Audio" },
+	{ "DVI_MODE", (void*)(&(cfg.dvi)), UINT8, 0, 1, 0, 1, config_on_off_msg, "" },
+	{ "HDMI_LIMITED", (void*)(&(cfg.hdmi_limited)), UINT8, 0, 2, 0, 1, config_hdmi_range_msg, "HDMI Range" },
+	{ "KBD_NOMOUSE", (void*)(&(cfg.kbd_nomouse)), UINT8, 0, 1, 4, 1, {}, "" },
+	{ "MOUSE_THROTTLE", (void*)(&(cfg.mouse_throttle)), UINT8, 1, 100, 4, 0, {}, "" },
+	{ "BOOTSCREEN", (void*)(&(cfg.bootscreen)), UINT8, 0, 1, 5, 1, config_on_off_msg, "" },
+	{ "VSCALE_MODE", (void*)(&(cfg.vscale_mode)), UINT8, 0, 3, 0, 1, config_vertical_scale_msg, "Vertical Scale" },
+	{ "VSCALE_BORDER", (void*)(&(cfg.vscale_border)), UINT16, 0, 399, 0, 0, {}, "" },
+	{ "RBF_HIDE_DATECODE", (void*)(&(cfg.rbf_hide_datecode)), UINT8, 0, 1, 2, 1, config_on_off_msg, "Hide Core Datecode" },
+	{ "MENU_PAL", (void*)(&(cfg.menu_pal)), UINT8, 0, 1, 2, 1, config_menu_mode_msg, "Menu Mode" },
+	{ "BOOTCORE", (void*)(&(cfg.bootcore)), STRING, 0, sizeof(cfg.bootcore) - 1, 8, 0, config_autoboot_core_msg, "" },
+	{ "BOOTCORE_TIMEOUT", (void*)(&(cfg.bootcore_timeout)), INT16, 10, 30, 8, 0, {}, "" },
+	{ "FONT", (void*)(&(cfg.font)), STRING, 0, sizeof(cfg.font) - 1, 2, 1, {}, "" },
+	{ "FB_SIZE", (void*)(&(cfg.fb_size)), UINT8, 0, 4, 0, 0, config_framebuffer_scale_msg, "Framebuffer Scale" },
+	{ "FB_TERMINAL", (void*)(&(cfg.fb_terminal)), UINT8, 0, 1, 0, 0, config_on_off_msg, "Framebuffer Terminal" },
+	{ "OSD_TIMEOUT", (void*)(&(cfg.osd_timeout)), INT16, 5, 3600, 2, 1, {}, "" },
+	{ "DIRECT_VIDEO", (void*)(&(cfg.direct_video)), UINT8, 0, 1, 1, 1, config_on_off_msg, "240p through HDMI" },
+	{ "OSD_ROTATE", (void*)(&(cfg.osd_rotate)), UINT8, 0, 2, 2, 1, config_osd_rotate_msg, "" },
+	{ "GAMEPAD_DEFAULTS", (void*)(&(cfg.gamepad_defaults)), UINT8, 0, 1, 4, 1, {}, "" },
+	{ "RECENTS", (void*)(&(cfg.recents)), UINT8, 0, 1, 2, 1, config_on_off_msg, "" },
+	{ "CONTROLLER_INFO", (void*)(&(cfg.controller_info)), UINT8, 0, 10, 4, 1, {}, "" },
+	{ "REFRESH_MIN", (void*)(&(cfg.refresh_min)), UINT8, 0, 150, 0, 0, {}, "" },
+	{ "REFRESH_MAX", (void*)(&(cfg.refresh_max)), UINT8, 0, 150, 0, 0, {}, ""  },
+	{ "JAMMA_VID", (void*)(&(cfg.jamma_vid)), UINT16, 0, 0xFFFF, 4, 0, {}, ""  },
+	{ "JAMMA_PID", (void*)(&(cfg.jamma_pid)), UINT16, 0, 0xFFFF, 4, 0, {}, ""  },
+	{ "SNIPER_MODE", (void*)(&(cfg.sniper_mode)), UINT8, 0, 1, 4, 1, config_sniper_mode_msg, "" },
+	{ "BROWSE_EXPAND", (void*)(&(cfg.browse_expand)), UINT8, 0, 1, 2, 1, config_on_off_msg, "2nd line for filename" },
+	{ "LOGO", (void*)(&(cfg.logo)), UINT8, 0, 1, 2, 1, config_on_off_msg, "MiSTer Logo In Menu" },
+	{ "SHARED_FOLDER", (void*)(&(cfg.shared_folder)), STRING, 0, sizeof(cfg.shared_folder) - 1, 5, 0, {}, "" },
+	{ "NO_MERGE_VID", (void*)(&(cfg.no_merge_vid)), UINT16, 0, 0xFFFF, 4, 0, {}, "" },
+	{ "NO_MERGE_PID", (void*)(&(cfg.no_merge_pid)), UINT16, 0, 0xFFFF, 4, 0, {}, "" },
+	{ "CUSTOM_ASPECT_RATIO_1", (void*)(&(cfg.custom_aspect_ratio[0])), STRING, 0, sizeof(cfg.custom_aspect_ratio[0]) - 1, 0, 0, {}, "" },
+	{ "CUSTOM_ASPECT_RATIO_2", (void*)(&(cfg.custom_aspect_ratio[1])), STRING, 0, sizeof(cfg.custom_aspect_ratio[1]) - 1, 0, 0, {}, "" },
 };
 
 const unsigned int nvars = (unsigned int)(sizeof(ini_vars) / sizeof(ini_var_t));
@@ -335,10 +358,10 @@ void cfg_parse()
 char * var_name_format(char * s)
 {
 	*s = toupper(*s);
-	for(char *i=s+1; *i; i++) 
+	for(char *i=s+1; *i; i++)
 	{
-		if (*i != '_') *i = tolower(*i);
-		else *i = ' ';
+		if (*i == '_') *i = ' ';
+		else *i = tolower(*i);
 	}
 	
 	return s;

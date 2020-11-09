@@ -82,6 +82,8 @@ typedef struct
 	int max;
 	unsigned int category = 0;
 	int dismenu = 0;
+	const char ** prettyp_values;
+	const char * prettyp_name;
 } ini_var_t;
 
 extern cfg_t cfg;
