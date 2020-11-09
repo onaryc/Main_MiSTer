@@ -5492,7 +5492,7 @@ void HandleUI(void)
 				break;
 		}
 		
-		// generate frome the ini structures
+		// generate from the ini structures
 		for (unsigned int i = 0; i < nvars; i++) {
 			if ((ini_vars[i].category == menusub_last) && (ini_vars[i].dismenu)) {
 				//const char * name = ini_vars[i].name;
@@ -5506,36 +5506,11 @@ void HandleUI(void)
 				}
 				
 				// get the value
-				//int value = 0;
-				//switch (ini_vars[i].type) {
-					//case UINT8:
-						//value =  *(uint8_t*)ini_vars[i].var;
-						//break;
-					//case INT8:
-						//value =  *(int8_t*)ini_vars[i].var;
-						//break;
-					//case UINT16:
-						//sprintf(s, " %s: %u", name, *(uint16_t*)ini_vars[i].var);
-						//break;
-					//case INT16:
-						//sprintf(s, " %s: %i", name, *(int16_t*)ini_vars[i].var);
-						//break;
-					//case UINT32:
-						//sprintf(s, " %s: %u", name, *(uint32_t*)ini_vars[i].var);
-						//break;
-					//case INT32:
-						//sprintf(s, " %s: %i", name, *(int32_t*)ini_vars[i].var);
-						//break;
-					//case FLOAT:
-						//sprintf(s, " %s: %f", name, *(float*)ini_vars[i].var);
-						//break;
-					//case STRING:
-						//sprintf(s, " %s: %s", name, (char *)ini_vars[i].var);
-						//break;
-				//}
-				
 				char * value = (char *)malloc(64);
 				if (ini_vars[i].prettyp_values != NULL) { // pretty value for the variable
+					char* endc;
+					long tmpValue;
+					
 					switch (ini_vars[i].type) {
 						case UINT8:
 							strcpy(value, ini_vars[i].prettyp_values[*(uint8_t*)ini_vars[i].var]);
@@ -5558,6 +5533,14 @@ void HandleUI(void)
 						//case FLOAT: // not sure it make sense, float index
 							//strcpy(value, ini_vars[i].prettyp_values[*(float*)ini_vars[i].var]);
 							//break;
+						case STRING: // var can contain string representing mixed string and numeric values (i.e. video mode)
+							tmpValue = strtol((char *)ini_vars[i].var, &endc, 10);
+							if (*endc) { // not a numeric value
+								strcpy(value, (char *)ini_vars[i].var);
+							} else { // numeric value
+								strcpy(value, ini_vars[i].prettyp_values[tmpValue]);
+							}
+							break;
 						default:
 							strcpy(value, ini_vars[i].prettyp_values[*(uint8_t*)ini_vars[i].var]);
 							break;
