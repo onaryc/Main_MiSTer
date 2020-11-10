@@ -5328,9 +5328,9 @@ void HandleUI(void)
 		parentstate = MENU_SETTINGS1;
 		
 		// generate the main configuration category entries
-		for (m = 0;m < ncfgcats; m++) {
+		for (m = 0;m < get_ncfgcats(); m++) {
 			sprintf(s, "                           \x16");
-			strreplace(s, (char *)ini_cfgcats[m].name, 1);
+			strreplace(s, get_cfgcat(m), 1);
 			OsdWrite(m, s, menusub == m);
 			menumask = (menumask << 1) | 1;
 		}
@@ -5355,7 +5355,7 @@ void HandleUI(void)
 	case MENU_SETTINGS_COMMON1:
 		// initialize the OSD
 		OsdSetSize(16);
-		OsdSetTitle(ini_cfgcats[menusub_last].name);
+		OsdSetTitle(get_cfgcat(menusub_last));
 		
 		//helptext = "test helptext";
 		
@@ -5493,86 +5493,15 @@ void HandleUI(void)
 		}
 		
 		// generate from the ini structures
-		for (unsigned int i = 0; i < nvars; i++) {
-			if ((ini_vars[i].category == menusub_last) && (ini_vars[i].dismenu)) {
-				//const char * name = ini_vars[i].name;
+		for (unsigned int i = 0; i < get_nvars(); i++) {
+			if (display_var(i, menusub_last)) {
+				// get the name
 				char * name = (char *)malloc(64);
-				
-				if (strcmp(ini_vars[i].prettyp_name, "")) { // prettier name for the variable 
-					strcpy(name, ini_vars[i].prettyp_name);
-				} else { // no pretty name
-					strcpy(name, ini_vars[i].name);
-					name = var_name_format(name);
-				}
+				cfgvar_to_str(name, i);
 				
 				// get the value
 				char * value = (char *)malloc(64);
-				if (ini_vars[i].prettyp_values != NULL) { // pretty value for the variable
-					char* endc;
-					long tmpValue;
-					
-					switch (ini_vars[i].type) {
-						case UINT8:
-							strcpy(value, ini_vars[i].prettyp_values[*(uint8_t*)ini_vars[i].var]);
-							break;
-						case INT8:
-							strcpy(value, ini_vars[i].prettyp_values[*(int8_t*)ini_vars[i].var]);
-							break;
-						case UINT16:
-							strcpy(value, ini_vars[i].prettyp_values[*(uint16_t*)ini_vars[i].var]);
-							break;
-						case INT16:
-							strcpy(value, ini_vars[i].prettyp_values[*(int16_t*)ini_vars[i].var]);
-							break;
-						case UINT32:
-							strcpy(value, ini_vars[i].prettyp_values[*(uint32_t*)ini_vars[i].var]);
-							break;
-						case INT32:
-							strcpy(value, ini_vars[i].prettyp_values[*(int32_t*)ini_vars[i].var]);
-							break;
-						//case FLOAT: // not sure it make sense, float index
-							//strcpy(value, ini_vars[i].prettyp_values[*(float*)ini_vars[i].var]);
-							//break;
-						case STRING: // var can contain string representing mixed string and numeric values (i.e. video mode)
-							tmpValue = strtol((char *)ini_vars[i].var, &endc, 10);
-							if (*endc) { // not a numeric value
-								strcpy(value, (char *)ini_vars[i].var);
-							} else { // numeric value
-								strcpy(value, ini_vars[i].prettyp_values[tmpValue]);
-							}
-							break;
-						default:
-							strcpy(value, ini_vars[i].prettyp_values[*(uint8_t*)ini_vars[i].var]);
-							break;
-					}
-				} else { // display the raw value
-					switch (ini_vars[i].type) {
-						case UINT8:
-							sprintf(value, "%u", *(uint8_t*)ini_vars[i].var);
-							break;
-						case INT8:
-							sprintf(value, "%i", *(int8_t*)ini_vars[i].var);
-							break;
-						case UINT16:
-							sprintf(value, "%u", *(uint16_t*)ini_vars[i].var);
-							break;
-						case INT16:
-							sprintf(value, "%i", *(int16_t*)ini_vars[i].var);
-							break;
-						case UINT32:
-							sprintf(value, "%u", *(uint32_t*)ini_vars[i].var);
-							break;
-						case INT32:
-							sprintf(value, "%i", *(int32_t*)ini_vars[i].var);
-							break;
-						case FLOAT:
-							sprintf(value, "%f", *(float*)ini_vars[i].var);
-							break;
-						case STRING:
-							strcpy(value, (char *)ini_vars[i].var);
-							break;
-					}
-				}
+				cfgval_to_str(value, i);
 				
 				// write the entry menu string to the OSD
 				sprintf(s, " %s: %s", name, value);
@@ -6356,51 +6285,3 @@ int menu_allow_cfg_switch()
 
 	return 0;
 }
-
-//void iniSettingsMenu ()
-//{
-	////static char s[256];
-	
-	////OsdSetSize(16);
-	////menumask = 255;
-	//parentstate = menustate;
-	//menustate = MENU_SETTINGS2;
-
-	//OsdSetTitle("Settings", 0);
-
-	////unsigned int iniVarNb = ini_cfg.nvars;
-	//////OsdSetSize(iniVarNb);
-	////for (unsigned int i = 0; i < iniVarNb; i++) {
-		//////char * name = ini_cfg.vars[i].name;
-		////switch (ini_cfg.vars[i].type) {
-		////case UINT8:
-			////sprintf(s, " %s: %i", ini_cfg.vars[i].name, *(uint8_t*)ini_cfg.vars[i].var);
-			////break;
-		////case INT8:
-			////sprintf(s, " %s: %i", ini_cfg.vars[i].name, *(int8_t*)ini_cfg.vars[i].var);
-			////break;
-		////case UINT16:
-			////sprintf(s, " %s: %i", ini_cfg.vars[i].name, *(uint16_t*)ini_cfg.vars[i].var);
-			////break;
-		////case INT16:
-			////sprintf(s, " %s: %i", ini_cfg.vars[i].name, *(int16_t*)ini_cfg.vars[i].var);
-			////break;
-		////case UINT32:
-			////sprintf(s, " %s: %i", ini_cfg.vars[i].name, *(uint32_t*)ini_cfg.vars[i].var);
-			////break;
-		////case INT32:
-			////sprintf(s, " %s: %i", ini_cfg.vars[i].name, *(int32_t*)ini_cfg.vars[i].var);
-			////break;
-		////case FLOAT:
-			////sprintf(s, " %s: %f", ini_cfg.vars[i].name, *(float*)ini_cfg.vars[i].var);
-			////break;
-		////case STRING:
-			////sprintf(s, " %s:         %s", ini_cfg.vars[i].name, (char *)ini_cfg.vars[i].var);
-			////break;
-		////case CUSTOM_HANDLER:
-			////break;
-		////}
-		//////sprintf(s, " %s:         %s", ini_cfg.vars[i].name, ini_cfg.vars[i].var);
-		////OsdWrite(i, s, menusub == i, 0);
-	////}
-//}

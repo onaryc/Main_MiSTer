@@ -50,10 +50,8 @@ const char* config_scandoubler_msg[] = { "Off","On (240p->480p)" };
 const char* config_color_mode_msg[] = { "RGB", "YPbPr" };
 const char* config_sync_mode_msg[] = { "Off", "On Hsync" };
 //const char* config_sync_mode_msg[] = { "Separate (RGBHV)", "Composite (RGBS)", "Green (RGsB/YPbPr)" };
-//const char* config_video_mode_msg[] = { "1280x720@60", "1024x768@60", "720x480@60", "720x576@50", "1280x1024@60", "800x600@60", "640x480@60", "1280x720@50",
-	//"1920x1080@60", "1920x1080@50", "1366x768@60", "1024x600@60", "1920x1440@60", "2048x1536@60" };
 const char* config_video_mode_msg[] = { "1280x720@60", "1024x768@60", "720x480@60", "720x576@50", "1280x1024@60", "800x600@60", "640x480@60", "1280x720@50",
-	"1080p60", "1920x1080@50", "1366x768@60", "1024x600@60", "1920x1440@60", "2048x1536@60" };
+	"1920x1080@60", "1920x1080@50", "1366x768@60", "1024x600@60", "1920x1440@60", "2048x1536@60" };
 const char* config_osd_rotate_msg[] = { "No", "Right (+90)", "Left (-90)" };
 const char* config_sniper_mode_msg[] = { "Slow", "Swapped" };
 
@@ -68,8 +66,8 @@ const ini_var_t ini_vars[] =
 	{ "RESET_COMBO", (void*)(&(cfg.reset_combo)), UINT8, 0, 3, 8, 1, config_reset_combo_msg, "" },
 	{ "KEY_MENU_AS_RGUI", (void*)(&(cfg.key_menu_as_rgui)), UINT8, 0, 1, 4, 1, config_on_off_msg, "Key Menu As RGUI (Minimig)" },
 	{ "VIDEO_MODE", (void*)(cfg.video_conf), STRING, 0, sizeof(cfg.video_conf)-1 , 0, 1, config_video_mode_msg, "Display Mode" },
-	{ "VIDEO_MODE_PAL", (void*)(cfg.video_conf_pal), STRING, 0, sizeof(cfg.video_conf_pal) - 1 , 0, 1, config_video_mode_msg, "NTSC Mode" },
-	{ "VIDEO_MODE_NTSC", (void*)(cfg.video_conf_ntsc), STRING, 0, sizeof(cfg.video_conf_ntsc) - 1, 0, 1, config_video_mode_msg, "PAL Mode" },
+	{ "VIDEO_MODE_PAL", (void*)(cfg.video_conf_pal), STRING, 0, sizeof(cfg.video_conf_pal) - 1 , 0, 1, config_video_mode_msg, "PAL Mode" },
+	{ "VIDEO_MODE_NTSC", (void*)(cfg.video_conf_ntsc), STRING, 0, sizeof(cfg.video_conf_ntsc) - 1, 0, 1, config_video_mode_msg, "NTSC Mode" },
 	{ "VIDEO_INFO", (void*)(&(cfg.video_info)), UINT8, 0, 10, 0, 1, {}, "" },
 	{ "VSYNC_ADJUST", (void*)(&(cfg.vsync_adjust)), UINT8, 0, 2, 0, 1, config_display_vsync_msg, "Vertical Sync" },
 	{ "HDMI_AUDIO_96K", (void*)(&(cfg.hdmi_audio_96k)), UINT8, 0, 1, 3, 1, config_hdmi_audio_msg, "Hdmi Audio" },
@@ -77,7 +75,7 @@ const ini_var_t ini_vars[] =
 	{ "HDMI_LIMITED", (void*)(&(cfg.hdmi_limited)), UINT8, 0, 2, 0, 1, config_hdmi_range_msg, "HDMI Range" },
 	{ "KBD_NOMOUSE", (void*)(&(cfg.kbd_nomouse)), UINT8, 0, 1, 4, 1, {}, "" },
 	{ "MOUSE_THROTTLE", (void*)(&(cfg.mouse_throttle)), UINT8, 1, 100, 4, 0, {}, "" },
-	{ "BOOTSCREEN", (void*)(&(cfg.bootscreen)), UINT8, 0, 1, 5, 1, config_on_off_msg, "" },
+	{ "BOOTSCREEN", (void*)(&(cfg.bootscreen)), UINT8, 0, 1, 8, 1, config_on_off_msg, "" },
 	{ "VSCALE_MODE", (void*)(&(cfg.vscale_mode)), UINT8, 0, 3, 0, 1, config_vertical_scale_msg, "Vertical Scale" },
 	{ "VSCALE_BORDER", (void*)(&(cfg.vscale_border)), UINT16, 0, 399, 0, 0, {}, "" },
 	{ "RBF_HIDE_DATECODE", (void*)(&(cfg.rbf_hide_datecode)), UINT8, 0, 1, 2, 1, config_on_off_msg, "Hide Core Datecode" },
@@ -355,14 +353,115 @@ void cfg_parse()
 	ini_parse(altcfg());
 }
 
-char * var_name_format(char * s)
-{
-	*s = toupper(*s);
-	for(char *i=s+1; *i; i++)
-	{
-		if (*i == '_') *i = ' ';
-		else *i = tolower(*i);
+unsigned int get_var_cat (unsigned int i) {
+	return ini_vars[i].category;
+}
+
+int get_var_dismenu (unsigned int i) {
+	return ini_vars[i].dismenu;
+}
+
+int display_var (unsigned int i, unsigned int category) {
+	if ((ini_vars[i].category == category) && (ini_vars[i].dismenu)) {
+		return 1;
+	} else {
+		return 0;
 	}
-	
-	return s;
+}
+
+void cfgvar_to_str (char * res, unsigned int i) {
+	if (strcmp(ini_vars[i].prettyp_name, "")) { // prettier name for the variable 
+		strcpy(res, ini_vars[i].prettyp_name);
+	} else { // no pretty name
+		strcpy(res, ini_vars[i].name);
+		
+		// format the variable name
+		*res = toupper(*res);
+		for(char *i=res+1; *i; i++)
+		{
+			if (*i == '_') *i = ' ';
+			else *i = tolower(*i);
+		}
+	}
+}
+
+void cfgval_to_str (char * res, unsigned int i) {
+	if (ini_vars[i].prettyp_values != NULL) { // pretty value for the variable
+		char* endc;
+		long tmpValue;
+		
+		switch (ini_vars[i].type) {
+			case UINT8:
+				strcpy(res, ini_vars[i].prettyp_values[*(uint8_t*)ini_vars[i].var]);
+				break;
+			case INT8:
+				strcpy(res, ini_vars[i].prettyp_values[*(int8_t*)ini_vars[i].var]);
+				break;
+			case UINT16:
+				strcpy(res, ini_vars[i].prettyp_values[*(uint16_t*)ini_vars[i].var]);
+				break;
+			case INT16:
+				strcpy(res, ini_vars[i].prettyp_values[*(int16_t*)ini_vars[i].var]);
+				break;
+			case UINT32:
+				strcpy(res, ini_vars[i].prettyp_values[*(uint32_t*)ini_vars[i].var]);
+				break;
+			case INT32:
+				strcpy(res, ini_vars[i].prettyp_values[*(int32_t*)ini_vars[i].var]);
+				break;
+			//case FLOAT: // not sure it make sense, float index
+				//strcpy(res, ini_vars[i].prettyp_values[*(float*)ini_vars[i].var]);
+				//break;
+			case STRING: // var can contain string representing mixed string and numeric values (i.e. video mode)
+				tmpValue = strtol((char *)ini_vars[i].var, &endc, 10);
+				if (*endc) { // not a numeric value
+					strcpy(res, (char *)ini_vars[i].var);
+				} else { // numeric value
+					strcpy(res, ini_vars[i].prettyp_values[tmpValue]);
+				}
+				break;
+			default:
+				strcpy(res, ini_vars[i].prettyp_values[*(uint8_t*)ini_vars[i].var]);
+				break;
+		}
+	} else { // display the raw value
+		switch (ini_vars[i].type) {
+			case UINT8:
+				sprintf(res, "%u", *(uint8_t*)ini_vars[i].var);
+				break;
+			case INT8:
+				sprintf(res, "%i", *(int8_t*)ini_vars[i].var);
+				break;
+			case UINT16:
+				sprintf(res, "%u", *(uint16_t*)ini_vars[i].var);
+				break;
+			case INT16:
+				sprintf(res, "%i", *(int16_t*)ini_vars[i].var);
+				break;
+			case UINT32:
+				sprintf(res, "%u", *(uint32_t*)ini_vars[i].var);
+				break;
+			case INT32:
+				sprintf(res, "%i", *(int32_t*)ini_vars[i].var);
+				break;
+			case FLOAT:
+				sprintf(res, "%f", *(float*)ini_vars[i].var);
+				break;
+			case STRING:
+				strcpy(res, (char *)ini_vars[i].var);
+				break;
+		}
+	}
+}
+
+unsigned int get_nvars () {
+	return nvars;
+}
+
+char * get_cfgcat(unsigned int i) {
+	return (char *)ini_cfgcats[i].name;
+}
+
+unsigned int get_ncfgcats() {
+	return ncfgcats;
 }

@@ -88,16 +88,15 @@ typedef struct
 
 extern cfg_t cfg;
 
-extern const unsigned int nvars;
-extern const ini_var_t ini_vars[];
-
-extern const unsigned int ncfgcats;
-extern const ini_cfgcat_t ini_cfgcats[];
-
-
 //// functions ////
 void cfg_parse();
 const char* cfg_get_name(uint8_t alt);
-char * var_name_format(char * s);
+
+void cfgvar_to_str (char * res, unsigned int i);
+void cfgval_to_str (char * res, unsigned int i);
+int display_var (unsigned int i, unsigned int category);
+unsigned int get_nvars ();
+char * get_cfgcat(unsigned int i);
+unsigned int get_ncfgcats();
 
 #endif // __CFG_H__
